@@ -3,11 +3,13 @@ var graphqlHTTP = require('express-graphql')
 var { buildSchema } = require('graphql')
 
 // construct a schema, using GraphQL schema language
+// `rollDice: numDice Int!`, where ! indicate numDice can't be null which means we can skip validation logic to make server code simpler, `numside` can be null and defaulted to 6 side
 var schema = buildSchema(`
   type Query {
     quoteOfTheDay: String
     random: Float!
     rollThreeDice: [Int]
+    rollDice(numDice: Int!, numSides: Int): [Int]
   }
 `)
 
@@ -22,6 +24,13 @@ var root = {
   rollThreeDice: () => {
     return [1, 2, 3].map(_ => 1 + Math.floor(Math.random() * 6));
   },
+  rollDice: function({ numDice, numSides }) {
+    var output = []
+    for (var i = 0; i < numDice; i++) {
+      output.push(1 + Math.floor(Math.random() * (numSides || 6)))
+    }
+    return output
+  }
 }
 
 var app = express();
