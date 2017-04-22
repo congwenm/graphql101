@@ -33,18 +33,22 @@ request.on('error', error => {
   console.log('error 111')
 })
 
-// actually making the call, sending the body
+// mutation name is optional
 request.write(JSON.stringify({
   operationName: null,
   query: `
-{
-  getDie(numSides: 6) {
-    rollOnce
-    roll(numRolls: 3)
+mutation CreateMessage($input: MessageInput) {
+  createMessage(input: $input) {
+    id
   }
 }
   `,
-  variables: null,
+  variables: {
+    input: {
+      author: 'andy',
+      content: 'hope is a good thing'
+    }
+  },
 }))
 
 request.end()

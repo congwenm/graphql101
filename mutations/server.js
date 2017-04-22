@@ -2,61 +2,61 @@ var express = require('express')
 var graphqlHTTP = require('express-graphql')
 var { buildSchema } = require('graphql')
 
-// construct a schema, using GraphQL schema language
-// `rollDice: numDice Int!`, where ! indicate numDice can't be null which means we can skip validation logic to make server code simpler, `numside` can be null and defaulted to 6 side
 var schema = buildSchema(`
-  type RandomDie {
-    numSides: Int!
-    rollOnce: Int!
-    roll(numRolls: Int!): [Int]
+  input MessageInput {
+    content: String
+    author: String
+  }
+
+  type Message {
+    id: ID!
+    content: String
+    author: String
   }
 
   type Query {
-    quoteOfTheDay: String
-    random: Float!
-    rollThreeDice: [Int]
-    rollDice(numDice: Int!, numSides: Int): [Int]
-    getDie(numSides: Int): RandomDie
+    getMessage(id: ID!): Message
+  }
+
+  type Mutation {
+    createMessage(input: MessageInput): Message
+    updateMessage(id: ID!, input: MessageInput): Message
   }
 `)
 
-class RandomDie {
-  constructor(numSides) {
-    this.numSides = numSides;
-  }
-  rollOnce() {
-    return 1 + Math.floor(Math.random() * this.numSides)
-  }
-  roll({ numRolls }) {
-    var output = []
-    for (var i = 0; i< numRolls; i++) {
-      output.push(this.rollOnce())
-    }
-    return output
+// If Message had any complex fields, we'd put htem on this object
+class Message {
+  constructor(id, { content, author }) {
+    this.id = id
+    this.content = content
+    this.author = author
   }
 }
 
+var fakeDatabase = {};
 
-// The root provides a resolver function for each APi endpoint
+// a number of different mutations all accept hte same input
+//  e.g. creating and updating often take the same parameter
 var root = {
-  quoteOfTheDay: () => {
-    return Math.random() < 0.5 ? 'Take it easy' : 'Salvation lies within';
-  },
-  random: () => {
-    return Math.random();
-  },
-  rollThreeDice: () => {
-    return [1, 2, 3].map(() => 1 + Math.floor(Math.random() * 6));
-  },
-  rollDice: function({ numDice, numSides }) {
-    var output = []
-    for (var i = 0; i < numDice; i++) {
-      output.push(1 + Math.floor(Math.random() * (numSides || 6)))
+  getMessage({ id }) {
+    if (!fakeDatabase[id]) {
+      throw new Error('no message exists with id ' + id)
     }
-    return output
+    return new Message(id, fakeDatabase[id])
   },
-  getDie ({ numSides }) {
-    return new RandomDie(numSides || 6)
+  createMessage ({ input }) {
+    // Create a random id for our 'database'
+    var id = require('crypto').randomBytes(10).toString('hex')
+
+    fakeDatabase[id] = input
+    return new Message(id, input)
+  },
+  updateMessage ({ id, input }) {
+    if (!fakeDatabase[id]) {
+      throw new Error('no message exists with id ' + id)
+    }
+    fakeDatabase[id] = input
+    return new Message(id, input)
   }
 }
 
