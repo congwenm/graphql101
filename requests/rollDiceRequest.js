@@ -13,11 +13,11 @@ var request = http.request({
   }
 }, function callHandler(incomingMessage) {
   console.log('making call 111')
-  incomingMessage.on('data', chunk => {
+  incomingMessage.on('data', chunk => { 
     console.log('succeeded 111, RESULT:')
     console.log(
       util.inspect(
-        chunk.toString(),
+        chunk.toString(), 
         { depth: null, colors: true, showHidden: false }
       )
     )
@@ -36,15 +36,8 @@ request.on('error', error => {
 // actually making the call, sending the body
 request.write(JSON.stringify({
   operationName: null,
-  query: `
-{
-  getDie(numSides: 6) {
-    rollOnce
-    roll(numRolls: 3)
-  }
-}
-  `,
-  variables: null,
+  query: `{ rollThreeDice }`,
+  variables: { dice: 3, sides: 6 },
 }))
 
 request.end()
