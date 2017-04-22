@@ -1,42 +1,43 @@
 var http = require('http')
+var util = require('util')
 
-var req = http.request({
+console.log('---------START----------------------')
+var request = http.request({
   hostname: 'localhost',
-  port: 4000,
-  body: {
-    query: `query RollDice($dice: Int!, $sides: Int) {
-      rollDice(numDice: $dice, numSides: $sides)
-    }`,
-    variables: { dice: 3, sides: 6 },
-  },
-  path: 'graphql',
+  port: "4000",
+  path: '/graphql', // need the '/'
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
+    // "accept": "application/json", // not needed
+    "content-type": "application/json",
   }
-}, res => {
-  console.log(res)
+}, function callHandler(incomingMessage) {
+  console.log('making call 111')
+  incomingMessage.on('data', chunk => { 
+    console.log('succeeded 111, RESULT:')
+    console.log(
+      util.inspect(
+        chunk.toString(), 
+        { depth: null, colors: true, showHidden: false }
+      )
+    )
+  })
+  incomingMessage.on('end', () => {
+    console.log('done 111')
+    console.log('--------END------------------')
+  })
 })
-req.on('error', error => console.log('failed', error))
 
+// doens't do anything if doesn't encounter error
+request.on('error', error => {
+  console.log('error 111')
+})
 
-// equivalent to plain javascript
+// actually making the call, sending the body
+request.write(JSON.stringify({
+  operationName: null,
+  query: `{ rollThreeDice }`,
+  variables: { dice: 3, sides: 6 },
+}))
 
-// var dice = 3;
-// var sides = 6;
-// var xhr = new XMLHttpRequest();
-// xhr.responseType = 'json';
-// xhr.open("POST", "/graphql");
-// xhr.setRequestHeader("Content-Type", "application/json");
-// xhr.setRequestHeader("Accept", "application/json");
-// xhr.onload = function () {
-//   console.log('data returned:', xhr.response);
-// }
-// var query = `query RollDice($dice: Int!, $sides: Int) {
-//   rollDice(numDice: $dice, numSides: $sides)
-// }`;
-// xhr.send(JSON.stringify({
-//   query: query,
-//   variables: { dice: dice, sides: sides },
-// }));
+request.end()
