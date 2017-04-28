@@ -30,6 +30,7 @@
     "express": "4.13.4",
     "graphql-tools": "^0.4.2",
     "mongoose": "^4.9.6",
+    "request-promise": "^4.2.0",
     "sequelize": "^3.30.4",
     "sqlite": "^2.5.0"
   },

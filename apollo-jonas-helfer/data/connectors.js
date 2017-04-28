@@ -2,6 +2,19 @@ import Sequelize from 'sequelize'
 import Mongoose from 'mongoose'
 import casual from 'casual'
 import _ from 'lodash'
+import rp from 'request-promise'
+
+// using promise based requests lets us get data from other services, author
+// chose fortune cookie API to iilustrate
+// fortune cookie
+const FortuneCookie = {
+  getOne() {
+    return rp('http://www.yerkee.com/api/fortune')
+      .then(JSON.parse)
+      .then(res => res.fortune)
+  }
+}
+// end of fortune cookie
 
 // mongodb
 const mongo = Mongoose.connect('mongodb://localhost/views')
@@ -34,6 +47,7 @@ PostModel.belongsTo(AuthorModel)
 casual.seed(123)
 db.sync({ force: true }).then(() => {
   _.times(10, () => {
+    // all of the following returns promises
     return AuthorModel.create({
       firstName: casual.first_name,
       lastName: casual.last_name
@@ -56,4 +70,4 @@ const Author = db.models.author
 const Post = db.models.post
 
 
-export { Author, Post, View }
+export { Author, Post, View, FortuneCookie }
